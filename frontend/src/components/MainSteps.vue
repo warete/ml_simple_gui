@@ -22,7 +22,7 @@
                 <v-card
                         class="mb-12"
                 >
-                    {{step.content}}
+                    <component :is="step.component"></component>
                 </v-card>
 
                 <v-row justify="space-between">
@@ -50,9 +50,12 @@
 
 <script>
     import {last, first} from 'lodash';
+    import UploadFilesStep from "./UploadFilesStep";
 
     export default {
         name: "MainSteps",
+        components: {UploadFilesStep},
+        component: [UploadFilesStep],
         data() {
             return {
                 mainStepperProgress: 1,
@@ -60,22 +63,22 @@
                     1: {
                         id: 'loadFile',
                         name: 'Загрузка данных',
-                        content: '',
+                        component: 'upload-files-step'
                     },
                     2: {
                         id: 'selectFields',
                         name: 'Определение параметров в выборке',
-                        content: '',
+                        component: ''
                     },
                     3: {
                         id: 'selectParams',
                         name: 'Настройка параметров модели',
-                        content: '',
+                        component: ''
                     },
                     4: {
                         id: 'results',
                         name: 'Результаты',
-                        content: '',
+                        component: ''
                     },
                 },
             }
