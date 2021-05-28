@@ -7,11 +7,11 @@ npm-debug.log*
 
 # Node.js
 frontend/node_modules/
-
+frontend/dist/
 
 # Python
 __pycache__
-backend/venv
+venv
 *.pyc
 
 # macOs
