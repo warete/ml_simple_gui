@@ -1,13 +1,20 @@
 <template>
     <v-stepper v-model="mainStepperProgress">
         <v-stepper-header>
-            <v-stepper-step
-                    v-for="(step, stepNumber) in steps" :key="step.id"
-                    :complete="mainStepperProgress > stepNumber"
-                    :step="stepNumber"
+            <template
+                    v-for="(step, stepNumber) in steps"
             >
-                {{step.name}}
-            </v-stepper-step>
+                <v-stepper-step
+                        :key="`${step.id}-step`"
+                        :complete="mainStepperProgress > stepNumber"
+                        :step="stepNumber"
+                >
+                    {{step.name}}
+                    <v-divider></v-divider>
+                </v-stepper-step>
+                <v-divider :key="`${step.id}-divider`"></v-divider>
+            </template>
+
         </v-stepper-header>
 
         <v-stepper-items>
