@@ -57,6 +57,15 @@ export const actions = {
       console.log(e.message);
     }
   },
+  setTestPercent({commit}, payload) {
+    commit(TYPE_SET_TEST_PERCENT, Number(payload));
+  },
+  setLearningRate({commit}, payload) {
+    commit(TYPE_SET_LEARNING_RATE, Number(payload));
+  },
+  setLearningEpochs({commit}, payload) {
+    commit(TYPE_SET_LEARNING_EPOCHS, Number(payload));
+  },
 };
 
 export const getters = {
