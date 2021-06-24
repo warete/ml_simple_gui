@@ -22,7 +22,7 @@
         <v-card
             class="mb-12"
         >
-          <component :is="step.component"></component>
+          <component :is="step.component" :is-opened="mainStepperProgress === Number(stepNumber)"></component>
         </v-card>
 
         <v-row justify="space-between">
@@ -53,11 +53,12 @@
 import {last, first} from 'lodash';
 import UploadFilesStep from "./UploadFilesStep";
 import SelectParamsStep from "./SelectParamsStep";
+import ResultStep from "./ResultStep";
 import {mapGetters} from "vuex";
 
 export default {
   name: "MainSteps",
-  components: {UploadFilesStep, SelectParamsStep},
+  components: {UploadFilesStep, SelectParamsStep, ResultStep},
   data() {
     return {
       mainStepperProgress: 1,
@@ -75,7 +76,7 @@ export default {
         3: {
           id: 'results',
           name: 'Результаты',
-          component: ''
+          component: 'result-step'
         },
       },
     }

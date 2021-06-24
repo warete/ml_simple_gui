@@ -16,6 +16,7 @@ import {mapActions, mapGetters} from 'vuex';
 
 export default {
   name: "UploadFilesStep",
+  props: ['isOpened'],
   data: () => ({
     rules: [
       value => !value || value.size < 200000000 || 'Файл должен быть меньше 200 МБ!',

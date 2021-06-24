@@ -29,6 +29,7 @@ import {mapActions} from "vuex";
 
 export default {
   name: "SelectParamsStep",
+  props: ['isOpened'],
   data: () => ({
     testPercent: 25.0,
     learningRate: 0.01,

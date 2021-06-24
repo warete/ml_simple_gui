@@ -22,7 +22,7 @@ def upload_data():
         return jsonify({
             'status': 'success',
             'result': {
-                'file_path': file_path
+                'file_path': file.filename
             }
         })
     else:
@@ -30,6 +30,17 @@ def upload_data():
             'status': 'error',
             'result': {
                 'message': 'Неподходящий тип файла'
+            }
+        })
+
+@app.route('/fit_predict/', methods=['POST'])
+def fit_predict():
+    return jsonify({
+            'status': 'success',
+            'result': {
+                'accuracy': 0,
+                'sensitivity': 0,
+                'specificity': 0,
             }
         })
 
