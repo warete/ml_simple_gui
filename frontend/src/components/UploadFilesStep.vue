@@ -12,8 +12,7 @@
 </template>
 
 <script>
-import axios from 'axios';
-import {API_DOMAIN} from '../constants';
+import {mapActions, mapGetters} from 'vuex';
 
 export default {
   name: "UploadFilesStep",
@@ -22,24 +21,17 @@ export default {
       value => !value || value.size < 200000000 || 'Файл должен быть меньше 200 МБ!',
     ],
   }),
+  computed: {
+    ...mapGetters({
+      'trainTestDataFile': 'main/trainTestDataFile'
+    })
+  },
   methods: {
-    onFileChange: function (file) {
-      const form = new FormData();
-      form.append('file', file);
-      axios.post(`${API_DOMAIN}/upload_data/`,
-          form,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          }
-      )
-          .then(function () {
-            console.log('SUCCESS!!');
-          })
-          .catch(function () {
-            console.log('FAILURE!!');
-          });
+    ...mapActions({
+      'uploadFile': 'main/uploadFile'
+    }),
+    onFileChange: async function (file) {
+      await this.uploadFile(file || {});
     }
   }
 }
