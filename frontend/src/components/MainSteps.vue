@@ -37,6 +37,7 @@
             <v-btn
                 v-if="stepNumber < maxStepNumber"
                 color="primary"
+                :disabled="isNextButtonDisabled"
                 @click="nextStep"
             >
               Вперед
@@ -51,11 +52,12 @@
 <script>
 import {last, first} from 'lodash';
 import UploadFilesStep from "./UploadFilesStep";
+import SelectParamsStep from "./SelectParamsStep";
+import {mapGetters} from "vuex";
 
 export default {
   name: "MainSteps",
-  components: {UploadFilesStep},
-  component: [UploadFilesStep],
+  components: {UploadFilesStep, SelectParamsStep},
   data() {
     return {
       mainStepperProgress: 1,
@@ -68,7 +70,7 @@ export default {
         2: {
           id: 'selectParams',
           name: 'Настройка параметров модели',
-          component: ''
+          component: 'select-params-step'
         },
         3: {
           id: 'results',
@@ -79,11 +81,26 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({
+      'isTrainTestDataFileValid': 'main/isTrainTestDataFileValid',
+    }),
     maxStepNumber() {
       return last(Object.keys(this.steps));
     },
     minStepNumber() {
       return first(Object.keys(this.steps));
+    },
+    isNextButtonDisabled() {
+      return !this[`${this.steps[this.mainStepperProgress].id}Valid`];
+    },
+    selectParamsValid() {
+      return true;
+    },
+    loadFileValid() {
+      return this.isTrainTestDataFileValid;
+    },
+    resultsValid() {
+      return true;
     },
   },
   methods: {

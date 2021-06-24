@@ -61,6 +61,7 @@ export const actions = {
 
 export const getters = {
   trainTestDataFile: state => state.trainTestDataFile,
+  isTrainTestDataFileValid: state => !!state.trainTestDataFile,
   testPercent: state => state.testPercent,
   learningRate: state => state.learningRate,
   learningEpochs: state => state.learningEpochs,
