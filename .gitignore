@@ -16,3 +16,7 @@ venv
 
 # macOs
 .DS_Store
+
+/upload/
+!/upload/.gitkeep
+/venv/
