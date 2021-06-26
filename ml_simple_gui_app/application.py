@@ -9,15 +9,30 @@ import json
 
 class Application:
     model = None
+    model_constructor = None
     upload_path = '/upload'
     server_port = 5000
     csv_delimiter = ','
+    model_params = [
+        {
+            'code': 'testPercent',
+            'name': 'Процент тестовой выборки',
+            'defaultValue': 25,
+        }
+    ]
 
-    def __init__(self, model, upload_path, csv_delimiter, server_port=5000):
-        self.model = model
+    def __init__(self, model, upload_path, csv_delimiter, model_params=None, server_port=5000):
+        if model_params is None:
+            model_params = []
+        if callable(model):
+            self.model_constructor = model
+        else:
+            self.model = model
         self.upload_path = upload_path
         self.csv_delimiter = csv_delimiter
         self.server_port = server_port
+        self.model_params += model_params
+        self.process_model_params()
 
     def set_model(self, model):
         self.model = model
@@ -36,7 +51,6 @@ class Application:
         return self
 
     def run(self):
-
         flask_app = Flask(
             __name__,
             static_url_path='',
@@ -51,10 +65,24 @@ class Application:
 
         flask_app.run(debug=True, port=self.server_port)
 
+    def process_model_params(self):
+        for k in range(len(self.model_params)):
+            if 'value' not in self.model_params[k]:
+                self.model_params[k]['value'] = self.model_params[k]['defaultValue']
+
     def set_routes(self, app):
         @app.route('/')
         def index():
             return render_template('index.html')
+
+        @app.route('/model_params')
+        def model_params():
+            return jsonify({
+                'status': 'success',
+                'result': {
+                    'params': self.model_params
+                }
+            })
 
         @app.route('/upload_data/', methods=['POST'])
         def upload_data():
@@ -78,7 +106,7 @@ class Application:
 
         @app.route('/fit_predict/', methods=['POST'])
         def fit_predict():
-            # {'file': {'file_path': 'test.csv'}, 'testPercent': 25, 'learningRate': 0.01, 'learningEpochs': 1000}
+            # {'file': {'file_path': 'test.csv'}, 'modelParams': {}}
             req_params = json.loads(request.get_data())
             if len(req_params['file']['file_path']) == 0 or not os.path.isfile(
                     os.path.join(self.upload_path, req_params['file']['file_path'])):
@@ -88,6 +116,13 @@ class Application:
                         'message': 'Файл не существует'
                     }
                 })
+            if self.model_constructor:
+                params = {}
+                for paramCode in req_params['modelParams']:
+                    if paramCode == 'testPercent':
+                        continue
+                    params[paramCode] = req_params['modelParams'][paramCode]['value']
+                self.model = self.model_constructor(**params)
             if not check_model(self.model):
                 return jsonify({
                     'status': 'error',
@@ -100,14 +135,16 @@ class Application:
             x = data_from_file.iloc[:, :-1]
             y = data_from_file.iloc[:, -1:]
 
-            x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=int(req_params['testPercent']) / 100)
+            x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=int(
+                req_params['modelParams']['testPercent']['value']) / 100)
 
             self.model.fit(x_train, y_train)
             y_pred = self.model.predict(x_test)
-            print(y_test, y_pred)
+
             accuracy = accuracy_score(y_test, y_pred)
             sensitivity = calculate_sensitivity(y_test, y_pred) * 100
             specificity = calculate_specificity(y_test, y_pred) * 100
+
             return jsonify({
                 'status': 'success',
                 'result': {

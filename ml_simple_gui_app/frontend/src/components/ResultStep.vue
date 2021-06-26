@@ -47,10 +47,8 @@
         computed: {
             ...mapGetters({
                 'trainTestDataFile': 'main/trainTestDataFile',
-                'testPercent': 'main/testPercent',
-                'learningRate': 'main/learningRate',
                 'learningEpochs': 'main/learningEpochs',
-                'resultLoading': 'main/resultLoading',
+                'modelParams': 'main/modelParams',
                 'result': 'main/result',
             })
         },
@@ -59,9 +57,7 @@
                 if (val) {
                     this.fetchResults({
                         file: this.trainTestDataFile,
-                        testPercent: this.testPercent,
-                        learningRate: this.learningRate,
-                        learningEpochs: this.learningEpochs,
+                        modelParams: this.modelParams,
                     });
                 }
             },

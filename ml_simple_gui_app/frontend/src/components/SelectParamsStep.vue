@@ -1,23 +1,20 @@
 <template>
-    <v-row>
-        <v-col>
+    <v-skeleton-loader
+            v-if="modelParamsLoading"
+            type="list-item-three-line, list-item-three-line, image, actions"
+    ></v-skeleton-loader>
+    <v-row
+            v-else
+    >
+        <v-col
+                v-for="code in Object.keys(modelParams)"
+                :key="modelParams[code].code"
+        >
             <v-text-field
-                    v-model="testPercent"
-                    label="Процент тестовой выборки"
-                    required
-            ></v-text-field>
-        </v-col>
-        <v-col>
-            <v-text-field
-                    v-model="learningRate"
-                    label="Скорость обучения"
-                    required
-            ></v-text-field>
-        </v-col>
-        <v-col>
-            <v-text-field
-                    v-model="learningEpochs"
-                    label="Количество эпох"
+                    :label="modelParams[code].name"
+                    :name="modelParams[code].code"
+                    :value="modelParams[code].defaultValue"
+                    @change="event => onParamValueChange(event, modelParams[code].code)"
                     required
             ></v-text-field>
         </v-col>
@@ -25,34 +22,34 @@
 </template>
 
 <script>
-    import {mapActions} from "vuex";
+    import {mapActions, mapGetters} from "vuex";
 
     export default {
         name: "SelectParamsStep",
         props: ['isOpened'],
-        data: () => ({
-            testPercent: 25.0,
-            learningRate: 0.01,
-            learningEpochs: 1000,
-        }),
+        data: () => ({}),
         methods: {
             ...mapActions({
-                'setTestPercent': 'main/setTestPercent',
-                'setLearningRate': 'main/setLearningRate',
-                'setLearningEpochs': 'main/setLearningEpochs',
+                'setModelParam': 'main/setModelParam',
+                'fetchModelParams': 'main/fetchModelParams',
+            }),
+            onParamValueChange(value, paramCode) {
+                this.setModelParam({code: paramCode, value});
+            }
+        },
+        computed: {
+            ...mapGetters({
+                'modelParams': 'main/modelParams',
+                'modelParamsLoading': 'main/modelParamsLoading',
             })
         },
         watch: {
-            testPercent: function (val) {
-                this.setTestPercent(val);
+            isOpened: function (val) {
+                if (val) {
+                    this.fetchModelParams();
+                }
             },
-            learningRate: function (val) {
-                this.setLearningRate(val);
-            },
-            learningEpochs: function (val) {
-                this.setLearningEpochs(val);
-            },
-        }
+        },
     }
 </script>
 

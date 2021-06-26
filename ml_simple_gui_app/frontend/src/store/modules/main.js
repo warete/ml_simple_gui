@@ -1,6 +1,7 @@
 import axios from "axios";
 import {API_DOMAIN} from "@/constants";
 import Vue from 'vue';
+import {keyBy, get} from 'lodash';
 
 export const state = {
     trainTestDataFile: null,
@@ -13,7 +14,8 @@ export const state = {
         specificity: 0,
         accuracy: 0,
     },
-    modelParams: []
+    modelParams: {},
+    modelParamsLoading: false,
 };
 
 const TYPE_SET_TRAIN_TEST_FILE = 'SET_TRAIN_TEST_FILE';
@@ -23,6 +25,10 @@ const TYPE_SET_LEARNING_EPOCHS = 'LEARNING_EPOCHS';
 const TYPE_SET_FETCH_RESULTS_START = 'FETCH_RESULTS_START';
 const TYPE_SET_FETCH_RESULTS_END = 'FETCH_RESULTS_END';
 const TYPE_SET_RESULTS = 'SET_RESULTS';
+const TYPE_FETCH_MODEL_PARAMS_START = 'FETCH_MODEL_PARAMS_START';
+const TYPE_FETCH_MODEL_PARAMS_END = 'FETCH_MODEL_PARAMS_END';
+const TYPE_SET_MODEL_PARAMS = 'SET_MODEL_PARAMS';
+const TYPE_SET_MODEL_PARAM_VALUE = 'SET_MODEL_PARAM_VALUE';
 
 export const mutations = {
     [TYPE_SET_TRAIN_TEST_FILE](state, payload) {
@@ -45,6 +51,21 @@ export const mutations = {
     },
     [TYPE_SET_RESULTS](state, payload) {
         Vue.set(state, 'result', payload);
+    },
+    [TYPE_FETCH_MODEL_PARAMS_START](state) {
+        state.modelParamsLoading = true;
+    },
+    [TYPE_FETCH_MODEL_PARAMS_END](state) {
+        state.modelParamsLoading = false;
+    },
+    [TYPE_SET_MODEL_PARAMS](state, payload) {
+        Vue.set(state, 'modelParams', payload);
+    },
+    [TYPE_SET_MODEL_PARAM_VALUE](state, {code, value}) {
+        Vue.set(state.modelParams, code, {
+            ...state.modelParams[code],
+            value
+        });
     },
 };
 
@@ -107,6 +128,31 @@ export const actions = {
             await commit(TYPE_SET_FETCH_RESULTS_END);
             console.log(e.message);
         }
+    },
+    async fetchModelParams({commit}, payload) {
+        try {
+            await commit(TYPE_FETCH_MODEL_PARAMS_START);
+            const response = await axios.get(`${API_DOMAIN}/model_params`,
+                payload
+            )
+                .then(result => result.data || {})
+                .catch(function () {
+                    console.log('FAILURE!!');
+                });
+            if (response.status === 'success') {
+                await commit(TYPE_SET_MODEL_PARAMS, keyBy(get(response, ['result', 'params'], []), 'code'));
+                await commit(TYPE_FETCH_MODEL_PARAMS_END);
+            } else {
+                await commit(TYPE_FETCH_MODEL_PARAMS_END);
+                console.log(response.result.message || 'error');
+            }
+        } catch (e) {
+            await commit(TYPE_FETCH_MODEL_PARAMS_END);
+            console.log(e.message);
+        }
+    },
+    setModelParam({commit}, {code, value}) {
+        commit(TYPE_SET_MODEL_PARAM_VALUE, {code, value})
     }
 };
 
@@ -118,5 +164,6 @@ export const getters = {
     learningEpochs: state => state.learningEpochs,
     result: state => state.result,
     resultLoading: state => state.resultLoading,
-
+    modelParams: state => state.modelParams,
+    modelParamsLoading: state => state.modelParamsLoading,
 };
