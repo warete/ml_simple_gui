@@ -63,7 +63,7 @@ class Application:
 
         self.set_routes(flask_app)
 
-        flask_app.run(debug=True, port=self.server_port)
+        flask_app.run(port=self.server_port)
 
     def process_model_params(self):
         for k in range(len(self.model_params)):
