@@ -3,7 +3,7 @@ from os.path import join, dirname
 
 setup(
     name='ml_simple_gui',
-    version='1.0.4',
+    version='1.0.5',
     packages=find_packages(),
     long_description=open(join(dirname(__file__), 'README.md')).read(),
     long_description_content_type='text/markdown',
