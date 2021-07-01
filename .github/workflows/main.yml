@@ -37,10 +37,10 @@ jobs:
         run: cd ml_simple_gui/frontend && npm install && npm run build && cd ../../
       
       - name: Debug
-        run: ls -la && ls -la ml_simple_gui/frontend
+        run: ls -la && ls -la ml_simple_gui/frontend/dist
       
       - name: Build package
-        run: pip install setuptools wheel && python setup.py sdist bdist_wheel
+        run: ls -la ml_simple_gui/frontend/dist && pip install setuptools wheel && python setup.py sdist bdist_wheel
         
       - name: Publish a Python distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
