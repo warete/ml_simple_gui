@@ -26,15 +26,18 @@ jobs:
       
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.1.5
-      
-      - name: Build front
-        run: cd ml_simple_gui/frontend && npm install && npm run build && cd ../../
 
       - name: Setup Python
         uses: actions/setup-python@v2.2.2
         with:
           # Version range or exact version of a Python version to use, using SemVer's version range syntax.
-          python-version: 3.8         
+          python-version: 3.8
+      
+      - name: Build front
+        run: cd ml_simple_gui/frontend && npm install && npm run build && cd ../../
+      
+      - name: Debug
+        run: ls -la ml_simple_gui/dist
       
       - name: Build package
         run: pip install setuptools wheel && python setup.py sdist bdist_wheel
