@@ -37,7 +37,7 @@ jobs:
         run: cd ml_simple_gui/frontend && npm install && npm run build && cd ../../
       
       - name: Debug
-        run: ls -la ml_simple_gui/dist
+        run: ls -la && ls -la ml_simple_gui
       
       - name: Build package
         run: pip install setuptools wheel && python setup.py sdist bdist_wheel
