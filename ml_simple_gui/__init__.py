@@ -147,10 +147,18 @@ class Application:
             x = data_from_file.iloc[:, :-1]
             y = data_from_file.iloc[:, -1:]
 
+            on_before_split_method = getattr(self.model, 'on_before_split', None)
+            if callable(on_before_split_method):
+                x, y = self.model.on_before_split(data_from_file)
+
             x_train, x_test, y_train, y_test = train_test_split(x, y,
                                                                 test_size=int(req_params['modelParams']['testPercent'][
                                                                                   'value']) / 100
                                                                 )
+
+            on_after_split_method = getattr(self.model, 'on_after_split', None)
+            if callable(on_after_split_method):
+                x_train, x_test, y_train, y_test = self.model.on_after_split(x_train, x_test, y_train, y_test)
 
             self.model.fit(x_train, y_train)
             y_pred = self.model.predict(x_test)
@@ -162,7 +170,7 @@ class Application:
                     metrics_result[metric['code']] = {
                         'code': metric['code'],
                         'name': metric['name'],
-                        'result': f_metric_func(y_test, y_pred)
+                        'result': f_metric_func(y_test, y_pred, y_train, x_train, x_test)
                     }
             # accuracy = accuracy_score(y_test, y_pred)
             # sensitivity = calculate_sensitivity(y_test, y_pred) * 100
