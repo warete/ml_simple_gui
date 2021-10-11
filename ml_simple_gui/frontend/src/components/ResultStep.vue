@@ -9,22 +9,10 @@
                     v-else
             >
                 <v-list class="transparent">
-                    <v-list-item>
-                        <v-list-item-title>Точность</v-list-item-title>
+                    <v-list-item v-for="metric in metrics" :key="metric.code">
+                        <v-list-item-title>{{metric.name}}</v-list-item-title>
                         <v-list-item-subtitle class="text-right">
-                            {{ result.accuracy }}%
-                        </v-list-item-subtitle>
-                    </v-list-item>
-                    <v-list-item>
-                        <v-list-item-title>Чувствительность</v-list-item-title>
-                        <v-list-item-subtitle class="text-right">
-                            {{ result.sensitivity }}%
-                        </v-list-item-subtitle>
-                    </v-list-item>
-                    <v-list-item>
-                        <v-list-item-title>Специфичность</v-list-item-title>
-                        <v-list-item-subtitle class="text-right">
-                            {{ result.specificity }}%
+                            {{ metric.result }}
                         </v-list-item-subtitle>
                     </v-list-item>
                 </v-list>
@@ -49,7 +37,7 @@
                 'trainTestDataFile': 'main/trainTestDataFile',
                 'learningEpochs': 'main/learningEpochs',
                 'modelParams': 'main/modelParams',
-                'result': 'main/result',
+                'metrics': 'main/result',
                 'resultLoading': 'main/resultLoading',
             })
         },

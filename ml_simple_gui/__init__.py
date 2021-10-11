@@ -21,8 +21,9 @@ class Application:
             'defaultValue': 25,
         }
     ]
+    metrics = []
 
-    def __init__(self, model, upload_path, csv_delimiter, model_params=None, server_port=5000):
+    def __init__(self, model, upload_path, csv_delimiter, model_params=None, server_port=5000, metrics=None):
         if model_params is None:
             model_params = []
         if callable(model):
@@ -34,6 +35,8 @@ class Application:
         self.server_port = server_port
         self.model_params += model_params
         self.process_model_params()
+        if metrics:
+            self.metrics = metrics
 
     def set_model(self, model):
         self.model = model
@@ -152,15 +155,20 @@ class Application:
             self.model.fit(x_train, y_train)
             y_pred = self.model.predict(x_test)
 
-            accuracy = accuracy_score(y_test, y_pred)
-            sensitivity = calculate_sensitivity(y_test, y_pred) * 100
-            specificity = calculate_specificity(y_test, y_pred) * 100
+            metrics_result = {}
+            for metric in self.metrics:
+                f_metric_func = metric['func']
+                if callable(f_metric_func):
+                    metrics_result[metric['code']] = {
+                        'code': metric['code'],
+                        'name': metric['name'],
+                        'result': f_metric_func(y_test, y_pred)
+                    }
+            # accuracy = accuracy_score(y_test, y_pred)
+            # sensitivity = calculate_sensitivity(y_test, y_pred) * 100
+            # specificity = calculate_specificity(y_test, y_pred) * 100
 
             return jsonify({
                 'status': 'success',
-                'result': {
-                    'accuracy': accuracy,
-                    'sensitivity': sensitivity,
-                    'specificity': specificity,
-                }
+                'result': metrics_result
             })
