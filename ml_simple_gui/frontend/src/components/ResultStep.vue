@@ -50,6 +50,7 @@
                 'learningEpochs': 'main/learningEpochs',
                 'modelParams': 'main/modelParams',
                 'result': 'main/result',
+                'resultLoading': 'main/resultLoading',
             })
         },
         watch: {

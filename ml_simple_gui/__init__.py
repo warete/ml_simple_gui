@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from .utils import check_model, calculate_sensitivity, calculate_specificity, get_data_from_csv
 import os
 import json
+import glob
 
 
 class Application:
@@ -84,6 +85,14 @@ class Application:
                 }
             })
 
+        @app.route('/get_files/', methods=['GET'])
+        def get_files():
+            return jsonify({
+                'status': 'success',
+                'result': [os.path.basename(file) for file in
+                           glob.glob(os.path.join(app.config['UPLOAD_FOLDER'], '*.csv'))]
+            })
+
         @app.route('/upload_data/', methods=['POST'])
         def upload_data():
             file = request.files['file']
@@ -135,8 +144,10 @@ class Application:
             x = data_from_file.iloc[:, :-1]
             y = data_from_file.iloc[:, -1:]
 
-            x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=int(
-                req_params['modelParams']['testPercent']['value']) / 100)
+            x_train, x_test, y_train, y_test = train_test_split(x, y,
+                                                                test_size=int(req_params['modelParams']['testPercent'][
+                                                                                  'value']) / 100
+                                                                )
 
             self.model.fit(x_train, y_train)
             y_pred = self.model.predict(x_test)

@@ -5,6 +5,7 @@ import {keyBy, get} from 'lodash';
 
 export const state = {
     trainTestDataFile: null,
+    uploadedFiles: [],
     testPercent: 25.0,
     learningRate: 0.01,
     learningEpochs: 1000,
@@ -29,6 +30,7 @@ const TYPE_FETCH_MODEL_PARAMS_START = 'FETCH_MODEL_PARAMS_START';
 const TYPE_FETCH_MODEL_PARAMS_END = 'FETCH_MODEL_PARAMS_END';
 const TYPE_SET_MODEL_PARAMS = 'SET_MODEL_PARAMS';
 const TYPE_SET_MODEL_PARAM_VALUE = 'SET_MODEL_PARAM_VALUE';
+const TYPE_SET_UPLOADED_FILES = 'SET_UPLOADED_FILES';
 
 export const mutations = {
     [TYPE_SET_TRAIN_TEST_FILE](state, payload) {
@@ -67,6 +69,9 @@ export const mutations = {
             value
         });
     },
+    [TYPE_SET_UPLOADED_FILES](state, payload) {
+        state.uploadedFiles = payload;
+    }
 };
 
 export const actions = {
@@ -153,6 +158,27 @@ export const actions = {
     },
     setModelParam({commit}, {code, value}) {
         commit(TYPE_SET_MODEL_PARAM_VALUE, {code, value})
+    },
+    async fetchUploadedFiles({commit}) {
+        try {
+            const response = await axios.get(`${API_DOMAIN}/get_files/`,
+                {}
+            )
+                .then(result => result.data || {})
+                .catch(function () {
+                    console.log('FAILURE!!');
+                });
+            if (response.status === 'success') {
+                await commit(TYPE_SET_UPLOADED_FILES, get(response, ['result'], []));
+            } else {
+                console.log(response.result.message || 'error');
+            }
+        } catch (e) {
+            console.log(e.message);
+        }
+    },
+    async setTrainTestFile({commit}, file) {
+        await commit(TYPE_SET_TRAIN_TEST_FILE, {file_path: file});
     }
 };
 
@@ -166,4 +192,5 @@ export const getters = {
     resultLoading: state => state.resultLoading,
     modelParams: state => state.modelParams,
     modelParamsLoading: state => state.modelParamsLoading,
+    uploadedFiles: state => state.uploadedFiles,
 };
