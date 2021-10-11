@@ -166,12 +166,21 @@ class Application:
             metrics_result = {}
             for metric in self.metrics:
                 f_metric_func = metric['func']
+                metric_result = None
                 if callable(f_metric_func):
+                    metric_result = f_metric_func(y_test, y_pred, y_train, x_train, x_test)
+                else:
+                    metric_method = getattr(self.model, f_metric_func, None)
+                    if metric_method:
+                        metric_result = metric_method(y_test, y_pred, y_train, x_train, x_test)
+
+                if metric_result:
                     metrics_result[metric['code']] = {
                         'code': metric['code'],
                         'name': metric['name'],
-                        'result': f_metric_func(y_test, y_pred, y_train, x_train, x_test)
+                        'result': metric_result
                     }
+
             # accuracy = accuracy_score(y_test, y_pred)
             # sensitivity = calculate_sensitivity(y_test, y_pred) * 100
             # specificity = calculate_specificity(y_test, y_pred) * 100
