@@ -54,7 +54,7 @@
             },
             onSelectFile: async function (file) {
               this.setTrainTestFile(file);
-            }
+            },
         },
         mounted: async function() {
             await this.fetchUploadedFiles();

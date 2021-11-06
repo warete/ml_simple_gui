@@ -1,7 +1,7 @@
 import axios from "axios";
 import {API_DOMAIN} from "@/constants";
 import Vue from 'vue';
-import {keyBy, get} from 'lodash';
+import {keyBy, get, debounce} from 'lodash';
 
 export const state = {
     trainTestDataFile: null,
@@ -159,7 +159,7 @@ export const actions = {
     setModelParam({commit}, {code, value}) {
         commit(TYPE_SET_MODEL_PARAM_VALUE, {code, value})
     },
-    async fetchUploadedFiles({commit}) {
+    fetchUploadedFiles: debounce(async function({commit}) {
         try {
             const response = await axios.get(`${API_DOMAIN}/get_files/`,
                 {}
@@ -176,7 +176,7 @@ export const actions = {
         } catch (e) {
             console.log(e.message);
         }
-    },
+    }, 500),
     async setTrainTestFile({commit}, file) {
         await commit(TYPE_SET_TRAIN_TEST_FILE, {file_path: file});
     }
