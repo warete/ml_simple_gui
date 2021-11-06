@@ -23,19 +23,34 @@
               <th class="text-left">
                 Параметр
               </th>
-              <th class="text-left">
+              <th class="text-right">
                 Результат
               </th>
             </tr>
             </thead>
             <tbody>
             <tr
-                v-for="metric in formattedMetrics"
+                v-for="metric in sortedMetrics"
                 :key="metric.code"
             >
               <td>{{ metric.name }}</td>
               <td>
-                <div v-html="metric.result"/>
+                <div v-if="metric.result_type == 'scalar'">
+                  {{ metric.result }}
+                </div>
+                <div v-else-if="metric.result_type == 'image'" class="text-right">
+                  <img :src="metric.result">
+                </div>
+                <v-simple-table v-else-if="metric.result_type == 'table'">
+                  <template v-slot:default>
+                    <tbody>
+                    <tr v-for="(val, key) in metric.result" :key="key">
+                      <td>{{ key }}</td>
+                      <td>{{ val }}</td>
+                    </tr>
+                    </tbody>
+                  </template>
+                </v-simple-table>
               </td>
             </tr>
             </tbody>
@@ -48,7 +63,7 @@
 
 <script>
 import {mapActions, mapGetters} from "vuex";
-import {map, isArray, isString, isObject} from 'lodash';
+import {sortBy} from 'lodash';
 
 export default {
   name: "ResultStep",
@@ -66,21 +81,8 @@ export default {
       'metrics': 'main/result',
       'resultLoading': 'main/resultLoading',
     }),
-    formattedMetrics() {
-      return map(this.metrics, metric => {
-        if (isString(metric.result)) {
-          return metric;
-        }
-        if (isArray(metric.result)) {
-          return {...metric, result: metric.result.join(', ')};
-        }
-        if (isObject(metric.result)) {
-          return {
-            ...metric,
-            result: [...map(metric.result, (metricItem, metricItemKey) => `${metricItemKey}: ${metricItem}`)].join('<br>')
-          };
-        }
-      })
+    sortedMetrics: function () {
+      return sortBy(this.metrics, ['result_type'])
     }
   },
   watch: {

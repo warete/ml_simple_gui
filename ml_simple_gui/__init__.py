@@ -178,7 +178,8 @@ class Application:
                     metrics_result[metric['code']] = {
                         'code': metric['code'],
                         'name': metric['name'],
-                        'result': metric_result
+                        'result': metric_result,
+                        'result_type': metric['result_type']
                     }
 
             # accuracy = accuracy_score(y_test, y_pred)

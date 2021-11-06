@@ -18,6 +18,7 @@ class CustomModel:
     epochs = 1000
     main_scaler = None
     columns = []
+    last_fit_history = {}
 
     def __init__(self, optimizer_learning_speed=0.01, epochs=1000):
         inputs = tf.keras.layers.Input(name='values18', shape=(19,), dtype='float32')
@@ -35,8 +36,12 @@ class CustomModel:
 
     def fit(self, x_train, y_train):
         start_t = time.time()
-        self.model.fit(self.train_dataset, validation_data=self.test_dataset, epochs=self.epochs,
+        history = self.model.fit(self.train_dataset, validation_data=self.test_dataset, epochs=self.epochs,
                        callbacks=[tf.keras.callbacks.TensorBoard(log_dir='logs')])
+
+        self.last_fit_history['loss'] = history.history['loss']
+        self.last_fit_history['val_loss'] = history.history['val_loss']
+
         end_t = time.time()
         print('Finish time: ', end_t - start_t)
 
@@ -94,6 +99,9 @@ class CustomModel:
         return left_predict, left_real
 
     def calc_rel_error(self, y_test, y_pred, y_train, x_train, x_test):
+        '''
+        Метод для расчета относительной ошибки
+        '''
         left_predict, left_real = self.prepare_data_for_error_metrics(y_test, y_pred, x_test)
         rel_error = left_real.sub(left_predict).div(left_real).abs().sum().mul(100).div(len(left_real)).to_frame()
 
@@ -103,6 +111,9 @@ class CustomModel:
         return result
 
     def calc_mae_error(self, y_test, y_pred, y_train, x_train, x_test):
+        '''
+        Метод для расчета средней абсолютной ошибки
+        '''
         left_predict, left_real = self.prepare_data_for_error_metrics(y_test, y_pred, x_test)
         mae_error = left_real.sub(left_predict).abs().sum().div(len(left_real)).to_frame()
 
@@ -110,6 +121,28 @@ class CustomModel:
         for item_k in mae_error.to_dict()[0].keys():
             result[item_k] = float('{:.3f}'.format(mae_error.to_dict()[0][item_k]))
         return result
+    
+    def get_fit_mse(self, y_test, y_pred, y_train, x_train, x_test):
+        return float('{:.3f}'.format(self.last_fit_history['val_loss'][-1]))
+    
+    def get_loss_graph(self, y_test, y_pred, y_train, x_train, x_tests):
+        import matplotlib.pyplot as plt
+        import io
+        import base64
+
+        plt.xlabel('epochs')
+        plt.ylabel('loss')
+        plt.plot(list(range(self.epochs)), self.last_fit_history['loss'], label='loss')
+        plt.plot(list(range(self.epochs)), self.last_fit_history['val_loss'], label='val_loss')
+        plt.legend()
+        plt.grid(True)
+        
+
+        s = io.BytesIO()
+        plt.savefig(s, format='png', bbox_inches="tight")
+        plt.close()
+        s = base64.b64encode(s.getvalue()).decode("utf-8").replace("\n", "")
+        return 'data:image/png;base64, ' + s
 
 
 def model(**args):
@@ -133,7 +166,7 @@ app = Application(
         {
             'code': 'epochs',
             'name': 'Количество эпох',
-            'defaultValue': '200',
+            'defaultValue': '50',
         }
     ],
     server_port=5000,
@@ -141,12 +174,26 @@ app = Application(
         {
             'code': 'rel_error',
             'name': 'Относительная ошибка',
-            'func': 'calc_rel_error'
+            'func': 'calc_rel_error',
+            'result_type': 'table'
         },
         {
             'code': 'mae_error',
             'name': 'Средняя абсолютная ошибка',
-            'func': 'calc_mae_error'
+            'func': 'calc_mae_error',
+            'result_type': 'table'
+        },
+        {
+            'code': 'mse',
+            'name': 'Среднеквадратичная ошибка',
+            'func': 'get_fit_mse',
+            'result_type': 'scalar'
+        },
+        {
+            'code': 'loss',
+            'name': 'График изменения среднеквадратичной ошибки',
+            'func': 'get_loss_graph',
+            'result_type': 'image'
         }
 
     ]
