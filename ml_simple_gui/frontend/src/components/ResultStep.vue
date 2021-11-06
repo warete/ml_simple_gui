@@ -23,7 +23,7 @@
               <th class="text-left">
                 Параметр
               </th>
-              <th class="text-right">
+              <th class="text-center">
                 Результат
               </th>
             </tr>
@@ -34,11 +34,11 @@
                 :key="metric.code"
             >
               <td>{{ metric.name }}</td>
-              <td>
+              <td class="text-center">
                 <div v-if="metric.result_type == 'scalar'">
                   {{ metric.result }}
                 </div>
-                <div v-else-if="metric.result_type == 'image'" class="text-right">
+                <div v-else-if="metric.result_type == 'image'">
                   <img :src="metric.result">
                 </div>
                 <v-simple-table v-else-if="metric.result_type == 'table'">

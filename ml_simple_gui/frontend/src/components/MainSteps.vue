@@ -22,7 +22,7 @@
                 <v-card
                         class="mb-12"
                 >
-                    <component :is="step.component" :is-opened="mainStepperProgress === Number(stepNumber)"></component>
+                    <component :is="step.component" :is-opened="mainStepperProgress === Number(stepNumber)" v-bind="step.propsData"></component>
                 </v-card>
 
                 <v-row justify="space-between">
@@ -54,29 +54,45 @@
     import UploadFilesStep from "./UploadFilesStep";
     import SelectParamsStep from "./SelectParamsStep";
     import ResultStep from "./ResultStep";
-    import {mapGetters} from "vuex";
+    import {mapGetters} from "vuex";    
+    import {TYPE_SET_TRAIN_TEST_FILE, TYPE_SET_PREDICT_FILE} from '../store/modules/main';
 
     export default {
         name: "MainSteps",
         components: {UploadFilesStep, SelectParamsStep, ResultStep},
         data() {
-            return {
+            return {                
                 mainStepperProgress: 1,
                 steps: {
                     1: {
                         id: 'loadFile',
                         name: 'Загрузка данных',
-                        component: 'upload-files-step'
+                        component: 'upload-files-step',
+                        propsData: {type: TYPE_SET_TRAIN_TEST_FILE}
                     },
                     2: {
                         id: 'selectParams',
                         name: 'Настройка параметров модели',
-                        component: 'select-params-step'
+                        component: 'select-params-step',
+                        propsData: {}
                     },
                     3: {
                         id: 'results',
                         name: 'Результаты',
-                        component: 'result-step'
+                        component: 'result-step',
+                        propsData: {}
+                    },
+                    4: {
+                        id: 'loadFileForPredict',
+                        name: 'Загрузка данных для получения проверки',
+                        component: 'upload-files-step',
+                        propsData: {type: TYPE_SET_PREDICT_FILE}
+                    },
+                    5: {
+                        id: 'predictResults',
+                        name: 'Результаты проверки',
+                        component: 'result-step',
+                        propsData: {}
                     },
                 },
             }
@@ -94,10 +110,14 @@
             isNextButtonDisabled() {
                 return !this[`${this.steps[this.mainStepperProgress].id}Valid`];
             },
+            //Методы для проверки доступности кнопки перехода к следующим шагам
             selectParamsValid() {
                 return true;
             },
             loadFileValid() {
+                return this.isTrainTestDataFileValid;
+            },
+            loadFileForPredictValid() {
                 return this.isTrainTestDataFileValid;
             },
             resultsValid() {

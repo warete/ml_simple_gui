@@ -25,7 +25,7 @@
 
     export default {
         name: "UploadFilesStep",
-        props: ['isOpened'],
+        props: ['isOpened', 'type'],
         data: () => ({
             rules: [
                 value => !value || value.size < 200000000 || 'Файл должен быть меньше 200 МБ!',
@@ -50,10 +50,10 @@
                 'setTrainTestFile': 'main/setTrainTestFile',
             }),
             onFileChange: async function (file) {
-                await this.uploadFile(file || {});
+                await this.uploadFile({file: file || {}, type: this.type});
             },
             onSelectFile: async function (file) {
-              this.setTrainTestFile(file);
+              this.setTrainTestFile({file, type: this.type});
             },
         },
         mounted: async function() {
