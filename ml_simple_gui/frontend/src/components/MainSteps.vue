@@ -54,12 +54,13 @@
     import UploadFilesStep from "./UploadFilesStep";
     import SelectParamsStep from "./SelectParamsStep";
     import ResultStep from "./ResultStep";
+    import PredictResultsStep from "./PredictResultsStep";
     import {mapGetters} from "vuex";    
     import {TYPE_SET_TRAIN_TEST_FILE, TYPE_SET_PREDICT_FILE} from '../store/modules/main';
 
     export default {
         name: "MainSteps",
-        components: {UploadFilesStep, SelectParamsStep, ResultStep},
+        components: {UploadFilesStep, SelectParamsStep, ResultStep, PredictResultsStep},
         data() {
             return {                
                 mainStepperProgress: 1,
@@ -91,7 +92,7 @@
                     5: {
                         id: 'predictResults',
                         name: 'Результаты проверки',
-                        component: 'result-step',
+                        component: 'predict-results-step',
                         propsData: {}
                     },
                 },
@@ -100,6 +101,7 @@
         computed: {
             ...mapGetters({
                 'isTrainTestDataFileValid': 'main/isTrainTestDataFileValid',
+                'isPredictDataFileValid': 'main/isPredictDataFileValid',
             }),
             maxStepNumber() {
                 return last(Object.keys(this.steps));
@@ -118,7 +120,7 @@
                 return this.isTrainTestDataFileValid;
             },
             loadFileForPredictValid() {
-                return this.isTrainTestDataFileValid;
+                return this.isPredictDataFileValid;
             },
             resultsValid() {
                 return true;

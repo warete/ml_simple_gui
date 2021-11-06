@@ -21,7 +21,8 @@ class CustomModel:
     last_fit_history = {}
 
     def __init__(self, optimizer_learning_speed=0.01, epochs=1000):
-        inputs = tf.keras.layers.Input(name='values18', shape=(19,), dtype='float32')
+        inputs = tf.keras.layers.Input(
+            name='values18', shape=(19,), dtype='float32')
         outputs = tf.keras.layers.Dropout(0.1)(inputs)
 
         outputs = tf.keras.layers.Dense(37, activation='sigmoid')(outputs)
@@ -29,7 +30,8 @@ class CustomModel:
 
         outputs = tf.keras.layers.Dense(18)(outputs)
         model = tf.keras.Model(inputs=inputs, outputs=outputs)
-        model.compile(optimizer=tf.keras.optimizers.SGD(float(optimizer_learning_speed)), loss='MSE')
+        model.compile(optimizer=tf.keras.optimizers.SGD(
+            float(optimizer_learning_speed)), loss='MSE')
 
         self.epochs = int(epochs)
         self.model = model
@@ -37,7 +39,7 @@ class CustomModel:
     def fit(self, x_train, y_train):
         start_t = time.time()
         history = self.model.fit(self.train_dataset, validation_data=self.test_dataset, epochs=self.epochs,
-                       callbacks=[tf.keras.callbacks.TensorBoard(log_dir='logs')])
+                                 callbacks=[tf.keras.callbacks.TensorBoard(log_dir='logs')])
 
         self.last_fit_history['loss'] = history.history['loss']
         self.last_fit_history['val_loss'] = history.history['val_loss']
@@ -79,10 +81,44 @@ class CustomModel:
 
         return source_values[:, :19], source_values[:, 19:]
 
+    def on_before_split_for_predict(self, data_from_file):
+        df = data_from_file
+        cols = df.columns.tolist()
+        diameter_data = df['diameter'].values
+        df = df[cols[:-1]]
+
+        source_values = df.values
+
+        # data preprocessing
+        scaler = StandardScaler()
+        scaler.fit(source_values)
+
+        source_values = scaler.transform(source_values)
+
+        d_scaler = StandardScaler()
+        d_scaled = d_scaler.fit_transform([[x] for x in diameter_data])
+        diameter_data = [x[0] for x in d_scaled]
+
+        a = []
+        for i in range(len(source_values)):
+            a.append(np.insert(source_values[i], 0, diameter_data[i]))
+        source_values = np.array(a)
+
+        np.random.shuffle(source_values)
+
+        self.main_scaler = scaler
+
+        return source_values
+
     def on_after_split(self, x_train, x_test, y_train, y_test):
-        self.train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(1000)
-        self.test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(1000)
+        self.train_dataset = tf.data.Dataset.from_tensor_slices(
+            (x_train, y_train)).batch(1000)
+        self.test_dataset = tf.data.Dataset.from_tensor_slices(
+            (x_test, y_test)).batch(1000)
         return x_train, x_test, y_train, y_test
+
+    def on_after_real_predict(self, y_pred):
+        return self.main_scaler.inverse_transform(y_pred).tolist()
 
     def prepare_data_for_error_metrics(self, y_test, y_pred, x_test):
         test_x_without_d = x_test[:, 1:]
@@ -93,8 +129,10 @@ class CustomModel:
         left_columns = ['t' + str(i) for i in range(18, 36)]
         left_real = real_data[left_columns]
         left_predict = predict_data[left_columns]
-        left_real.columns = ['mw' + str(i) for i in range(9)] + ['ir' + str(i) for i in range(9)]
-        left_predict.columns = ['mw' + str(i) for i in range(9)] + ['ir' + str(i) for i in range(9)]
+        left_real.columns = [
+            'mw' + str(i) for i in range(9)] + ['ir' + str(i) for i in range(9)]
+        left_predict.columns = [
+            'mw' + str(i) for i in range(9)] + ['ir' + str(i) for i in range(9)]
 
         return left_predict, left_real
 
@@ -102,29 +140,35 @@ class CustomModel:
         '''
         Метод для расчета относительной ошибки
         '''
-        left_predict, left_real = self.prepare_data_for_error_metrics(y_test, y_pred, x_test)
-        rel_error = left_real.sub(left_predict).div(left_real).abs().sum().mul(100).div(len(left_real)).to_frame()
+        left_predict, left_real = self.prepare_data_for_error_metrics(
+            y_test, y_pred, x_test)
+        rel_error = left_real.sub(left_predict).div(
+            left_real).abs().sum().mul(100).div(len(left_real)).to_frame()
 
         result = {}
         for item_k in rel_error.to_dict()[0].keys():
-            result[item_k] = float('{:.3f}'.format(rel_error.to_dict()[0][item_k]))
+            result[item_k] = float('{:.3f}'.format(
+                rel_error.to_dict()[0][item_k]))
         return result
 
     def calc_mae_error(self, y_test, y_pred, y_train, x_train, x_test):
         '''
         Метод для расчета средней абсолютной ошибки
         '''
-        left_predict, left_real = self.prepare_data_for_error_metrics(y_test, y_pred, x_test)
-        mae_error = left_real.sub(left_predict).abs().sum().div(len(left_real)).to_frame()
+        left_predict, left_real = self.prepare_data_for_error_metrics(
+            y_test, y_pred, x_test)
+        mae_error = left_real.sub(left_predict).abs(
+        ).sum().div(len(left_real)).to_frame()
 
         result = {}
         for item_k in mae_error.to_dict()[0].keys():
-            result[item_k] = float('{:.3f}'.format(mae_error.to_dict()[0][item_k]))
+            result[item_k] = float('{:.3f}'.format(
+                mae_error.to_dict()[0][item_k]))
         return result
-    
+
     def get_fit_mse(self, y_test, y_pred, y_train, x_train, x_test):
         return float('{:.3f}'.format(self.last_fit_history['val_loss'][-1]))
-    
+
     def get_loss_graph(self, y_test, y_pred, y_train, x_train, x_tests):
         import matplotlib.pyplot as plt
         import io
@@ -132,11 +176,12 @@ class CustomModel:
 
         plt.xlabel('epochs')
         plt.ylabel('loss')
-        plt.plot(list(range(self.epochs)), self.last_fit_history['loss'], label='loss')
-        plt.plot(list(range(self.epochs)), self.last_fit_history['val_loss'], label='val_loss')
+        plt.plot(list(range(self.epochs)),
+                 self.last_fit_history['loss'], label='loss')
+        plt.plot(list(range(self.epochs)),
+                 self.last_fit_history['val_loss'], label='val_loss')
         plt.legend()
         plt.grid(True)
-        
 
         s = io.BytesIO()
         plt.savefig(s, format='png', bbox_inches="tight")

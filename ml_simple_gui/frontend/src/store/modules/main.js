@@ -18,6 +18,10 @@ export const state = {
     },
     modelParams: {},
     modelParamsLoading: false,
+    predictResultLoading: false,
+    predictResult: {
+        filePath: ''
+    }
 };
 
 export const TYPE_SET_TRAIN_TEST_FILE = 'SET_TRAIN_TEST_FILE';
@@ -33,6 +37,9 @@ export const TYPE_FETCH_MODEL_PARAMS_END = 'FETCH_MODEL_PARAMS_END';
 export const TYPE_SET_MODEL_PARAMS = 'SET_MODEL_PARAMS';
 export const TYPE_SET_MODEL_PARAM_VALUE = 'SET_MODEL_PARAM_VALUE';
 export const TYPE_SET_UPLOADED_FILES = 'SET_UPLOADED_FILES';
+export const TYPE_FETCH_PREDICT_RESULT_START = 'FETCH_PREDICT_RESULT_START';
+export const TYPE_FETCH_PREDICT_RESULT_END = 'FETCH_PREDICT_RESULT_END';
+export const TYPE_SET_PREDICT_RESULTS = 'SET_PREDICT_RESULTS';
 
 export const mutations = {
     [TYPE_SET_TRAIN_TEST_FILE](state, payload) {
@@ -76,7 +83,17 @@ export const mutations = {
     },
     [TYPE_SET_UPLOADED_FILES](state, payload) {
         state.uploadedFiles = payload;
-    }
+    },
+
+    [TYPE_FETCH_PREDICT_RESULT_START](state) {
+        state.predictResultLoading = true;
+    },
+    [TYPE_FETCH_PREDICT_RESULT_END](state) {
+        state.predictResultLoading = false;
+    },
+    [TYPE_SET_PREDICT_RESULTS](state, payload) {
+        Vue.set(state, 'predictResult', payload);
+    },
 };
 
 export const actions = {
@@ -184,6 +201,32 @@ export const actions = {
     }, 500),
     async setTrainTestFile({commit}, {file, type}) {
         await commit(type, {file_path: file});
+    },
+    
+    async fetchPredictResults({commit}, payload) {
+        try {
+            await commit(TYPE_FETCH_PREDICT_RESULT_START);
+            const response = await axios.post(`${API_DOMAIN}/predict/`,
+                payload
+            )
+                .then(result => result.data || {})
+                .catch(function () {
+                    console.log('FAILURE!!');
+                });
+            if (response.status === 'success') {
+                await commit(TYPE_SET_PREDICT_RESULTS, response.result);
+                await commit(TYPE_FETCH_PREDICT_RESULT_END);
+            } else {
+                await commit(TYPE_FETCH_PREDICT_RESULT_END);
+                console.log(response.result.message || 'error');
+            }
+        } catch (e) {
+            await commit(TYPE_FETCH_PREDICT_RESULT_END);
+            console.log(e.message);
+        }
+    },
+    resetPredictResult({commit}) {
+        commit(TYPE_SET_PREDICT_RESULTS, {})
     }
 };
 
@@ -198,4 +241,9 @@ export const getters = {
     modelParams: state => state.modelParams,
     modelParamsLoading: state => state.modelParamsLoading,
     uploadedFiles: state => state.uploadedFiles,
+
+    predictDataFile: state => state.predictDataFile,
+    isPredictDataFileValid: state => !!state.predictDataFile,
+    predictResultLoading: state => state.predictResultLoading,
+    predictResult: state => state.predictResult,
 };
