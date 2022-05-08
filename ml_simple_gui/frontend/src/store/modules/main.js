@@ -21,7 +21,14 @@ export const state = {
     predictResultLoading: false,
     predictResult: {
         filePath: ''
-    }
+    },
+    //TODO: получение из REST-метода
+    fittedModels: [
+        'model_08_05_2022_15_10',
+        'model_08_05_2022_14_10',
+        'model_01_05_2022_10_01',
+    ],
+    selectedModel: null,
 };
 
 export const TYPE_SET_TRAIN_TEST_FILE = 'SET_TRAIN_TEST_FILE';
@@ -40,6 +47,7 @@ export const TYPE_SET_UPLOADED_FILES = 'SET_UPLOADED_FILES';
 export const TYPE_FETCH_PREDICT_RESULT_START = 'FETCH_PREDICT_RESULT_START';
 export const TYPE_FETCH_PREDICT_RESULT_END = 'FETCH_PREDICT_RESULT_END';
 export const TYPE_SET_PREDICT_RESULTS = 'SET_PREDICT_RESULTS';
+export const TYPE_SET_SELECTED_MODEL = 'SET_SELECTED_MODEL';
 
 export const mutations = {
     [TYPE_SET_TRAIN_TEST_FILE](state, payload) {
@@ -93,6 +101,9 @@ export const mutations = {
     },
     [TYPE_SET_PREDICT_RESULTS](state, payload) {
         Vue.set(state, 'predictResult', payload);
+    },
+    [TYPE_SET_SELECTED_MODEL](state, payload) {
+        state.selectedModel = payload;
     },
 };
 
@@ -227,6 +238,9 @@ export const actions = {
     },
     resetPredictResult({commit}) {
         commit(TYPE_SET_PREDICT_RESULTS, {})
+    },
+    async setSelectedModel({commit}, model) {
+        await commit(TYPE_SET_SELECTED_MODEL, model);
     }
 };
 
@@ -246,4 +260,7 @@ export const getters = {
     isPredictDataFileValid: state => !!state.predictDataFile,
     predictResultLoading: state => state.predictResultLoading,
     predictResult: state => state.predictResult,
+
+    isSelectedModelValid: state => !!state.selectedModel,
+    fittedModels: state => state.fittedModels,
 };
