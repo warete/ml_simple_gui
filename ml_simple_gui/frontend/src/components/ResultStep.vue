@@ -1,89 +1,90 @@
 <template>
-  <v-row>
-    <v-col cols="12">
-      <div v-if="resultLoading">
-        <v-alert
-          border="left"
-          color="indigo"
-          dark
-        >
-          Идет загрузка данных
-        </v-alert>
-        <v-skeleton-loader
+  <div>
+    <v-row>
+      <v-col cols="12">
+        <div v-if="resultLoading">
+          <v-alert border="left" color="indigo" dark>
+            Идет загрузка данных
+          </v-alert>
+          <v-skeleton-loader
             type="list-item-three-line, list-item-three-line, image, actions"
-        ></v-skeleton-loader>
-      </div>
-      <template
-          v-else
-      >
-        <v-simple-table>
-          <template v-slot:default>
-            <thead>
-            <tr>
-              <th class="text-left">
-                Параметр
-              </th>
-              <th class="text-center">
-                Результат
-              </th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr
-                v-for="metric in sortedMetrics"
-                :key="metric.code"
-            >
-              <td>{{ metric.name }}</td>
-              <td class="text-center">
-                <div v-if="metric.result_type == 'scalar'">
-                  {{ metric.result }}
-                </div>
-                <div v-else-if="metric.result_type == 'image'">
-                  <img :src="metric.result">
-                </div>
-                <v-simple-table v-else-if="metric.result_type == 'table'">
-                  <template v-slot:default>
-                    <tbody>
-                    <tr v-for="(val, key) in metric.result" :key="key">
-                      <td>{{ key }}</td>
-                      <td>{{ val }}</td>
-                    </tr>
-                    </tbody>
-                  </template>
-                </v-simple-table>
-              </td>
-            </tr>
-            </tbody>
-          </template>
-        </v-simple-table>
-      </template>
-    </v-col>
-  </v-row>
+          ></v-skeleton-loader>
+        </div>
+        <template v-else>
+          <v-simple-table>
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th class="text-left">Параметр</th>
+                  <th class="text-center">Результат</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="metric in sortedMetrics" :key="metric.code">
+                  <td>{{ metric.name }}</td>
+                  <td class="text-center">
+                    <div v-if="metric.result_type == 'scalar'">
+                      {{ metric.result }}
+                    </div>
+                    <div v-else-if="metric.result_type == 'image'">
+                      <img :src="metric.result" />
+                    </div>
+                    <v-simple-table v-else-if="metric.result_type == 'table'">
+                      <template v-slot:default>
+                        <tbody>
+                          <tr v-for="(val, key) in metric.result" :key="key">
+                            <td>{{ key }}</td>
+                            <td>{{ val }}</td>
+                          </tr>
+                        </tbody>
+                      </template>
+                    </v-simple-table>
+                  </td>
+                </tr>
+              </tbody>
+            </template>
+          </v-simple-table>
+        </template>
+      </v-col>
+    </v-row>
+    <v-row v-if="!resultLoading">
+      <v-col cols="4">
+        <v-text-field
+          label="Название модели"
+          placeholder="Например: model_01_01_2022_01_01"
+          outlined
+        ></v-text-field>      
+      </v-col>
+      <v-col>
+        <v-btn>Сохранить модель</v-btn>
+      </v-col>
+    </v-row>
+  </div>
 </template>
 
 <script>
-import {mapActions, mapGetters} from "vuex";
-import {sortBy} from 'lodash';
+import { mapActions, mapGetters } from "vuex";
+import { sortBy } from "lodash";
 
 export default {
   name: "ResultStep",
-  props: ['isOpened'],
+  props: ["isOpened"],
   methods: {
     ...mapActions({
-      'fetchResults': 'main/fetchResults',
+      fetchResults: "main/fetchResults",
     }),
   },
   computed: {
     ...mapGetters({
-      'trainTestDataFile': 'main/trainTestDataFile',
-      'learningEpochs': 'main/learningEpochs',
-      'modelParams': 'main/modelParams',
-      'metrics': 'main/result',
-      'resultLoading': 'main/resultLoading',
+      trainTestDataFile: "main/trainTestDataFile",
+      learningEpochs: "main/learningEpochs",
+      modelParams: "main/modelParams",
+      metrics: "main/result",
+      resultLoading: "main/resultLoading",
     }),
     sortedMetrics: function () {
-      return sortBy(this.metrics, ['result_type'])
-    }
+      return sortBy(this.metrics, ["result_type"]);
+    },
   },
   watch: {
     isOpened: function (val) {
@@ -95,9 +96,8 @@ export default {
       }
     },
   },
-}
+};
 </script>
 
 <style scoped>
-
 </style>

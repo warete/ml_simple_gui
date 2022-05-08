@@ -22,7 +22,14 @@
                 <v-card
                         class="mb-12"
                 >
-                    <component :is="step.component" :is-opened="mainStepperProgress === Number(stepNumber)" v-bind="step.propsData"></component>
+                    <component 
+                    :is="step.component" 
+                    :is-opened="mainStepperProgress === Number(stepNumber)" 
+                    v-bind="step.propsData"
+                    v-on:next-step="nextStep"
+                    v-on:next-step-number="onSetNextStepNumber"
+                    v-on:prev-step-number="onSetPrevStepNumber"
+                    ></component>
                 </v-card>
 
                 <v-row justify="space-between">
@@ -50,48 +57,57 @@
 </template>
 
 <script>
-    import {last, first} from 'lodash';
+    import {last, first, isNumber} from 'lodash';
     import UploadFilesStep from "./UploadFilesStep";
     import SelectParamsStep from "./SelectParamsStep";
     import ResultStep from "./ResultStep";
     import PredictResultsStep from "./PredictResultsStep";
+    import SelectModelStep from "./SelectModelStep";
     import {mapGetters} from "vuex";    
     import {TYPE_SET_TRAIN_TEST_FILE, TYPE_SET_PREDICT_FILE} from '../store/modules/main';
 
     export default {
         name: "MainSteps",
-        components: {UploadFilesStep, SelectParamsStep, ResultStep, PredictResultsStep},
+        components: {UploadFilesStep, SelectParamsStep, ResultStep, PredictResultsStep, SelectModelStep},
         data() {
-            return {                
+            return {            
                 mainStepperProgress: 1,
+                nextStepFromChild: null,
+                prevStepFromChild: null,
                 steps: {
                     1: {
+                        id: 'selectModel',
+                        name: 'Выбор действия',
+                        component: 'select-model-step',
+                        propsData: {}
+                    },
+                    2: {
                         id: 'loadFile',
                         name: 'Загрузка данных',
                         component: 'upload-files-step',
                         propsData: {type: TYPE_SET_TRAIN_TEST_FILE}
                     },
-                    2: {
+                    3: {
                         id: 'selectParams',
                         name: 'Настройка параметров модели',
                         component: 'select-params-step',
                         propsData: {}
                     },
-                    3: {
+                    4: {
                         id: 'results',
                         name: 'Результаты',
                         component: 'result-step',
                         propsData: {}
                     },
-                    4: {
+                    5: {
                         id: 'loadFileForPredict',
-                        name: 'Загрузка данных для получения проверки',
+                        name: 'Загрузка данных для моделирования',
                         component: 'upload-files-step',
                         propsData: {type: TYPE_SET_PREDICT_FILE}
                     },
-                    5: {
+                    6: {
                         id: 'predictResults',
-                        name: 'Результаты проверки',
+                        name: 'Результаты моделирования',
                         component: 'predict-results-step',
                         propsData: {}
                     },
@@ -102,6 +118,7 @@
             ...mapGetters({
                 'isTrainTestDataFileValid': 'main/isTrainTestDataFileValid',
                 'isPredictDataFileValid': 'main/isPredictDataFileValid',
+                'isSelectedModelValid': 'main/isSelectedModelValid',
             }),
             maxStepNumber() {
                 return last(Object.keys(this.steps));
@@ -125,13 +142,32 @@
             resultsValid() {
                 return true;
             },
+            selectModelValid() {
+                return this.isSelectedModelValid;
+            },
         },
         methods: {
             nextStep() {
-                this.mainStepperProgress++;
+                if (isNumber(this.nextStepFromChild)) {
+                    this.mainStepperProgress = this.nextStepFromChild;
+                    this.nextStepFromChild = null;
+                } else {
+                    this.mainStepperProgress++;
+                }
             },
             previousStep() {
-                this.mainStepperProgress--;
+                if (isNumber(this.prevStepFromChild)) {
+                    this.mainStepperProgress = this.prevStepFromChild;
+                    this.prevStepFromChild = null;
+                } else {
+                    this.mainStepperProgress--;
+                }
+            },
+            onSetNextStepNumber(stepNumber) {
+                this.nextStepFromChild = stepNumber;
+            },
+            onSetPrevStepNumber(stepNumber) {
+                this.prevStepFromChild = stepNumber;
             },
         }
     }
